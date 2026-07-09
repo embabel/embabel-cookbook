@@ -1,0 +1,94 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Action Domain Type Chaining
+
+=== Introduction
+
+This chapter shows how an agent can move through a typed chain of actions without ad hoc branching.
+The example starts with a `UserInput`, narrows it into a request type, turns that into a concrete travel activity, and finishes with a travel recommendation.
+The main idea is that action return types drive the next step in the plan.
+`TravelRequest` is the common input shape, `FlightRequest` and `ItineraryRequest` split the flow, and `Flight` or `Itinerary` becomes the intermediate domain result before the final `TravelRecommendation`.
+
+[[cookbook.action-domain-type-chaining.key-concepts]]
+=== Key Concepts
+
+[[cookbook.action-domain-type-chaining.agent]]
+`@Agent` marks the class that Spring discovers and Embabel deploys.
+
+[[cookbook.action-domain-type-chaining.action]]
+`@Action` marks each step in the plan and gives the planner a typed transition.
+
+[[cookbook.action-domain-type-chaining.goal]]
+`@AchievesGoal` marks the terminal action that satisfies the invocation goal.
+
+[[cookbook.action-domain-type-chaining.planner]]
+Embabel uses a planner behind the scenes.
+The default planner is GOAP.
+This chapter only introduces the idea; more planner detail comes later.
+
+[[cookbook.action-domain-type-chaining.llm]]
+`Ai.withDefaultLlm().createObject(...)` is the LLM boundary in this chapter.
+Each action uses it to turn prompt text into a typed result.
+
+=== How It Works
+
+==== Bootstrap
+
+The shared test application is a normal Spring Boot entry point for the cookbook test sources.
+It is the only test bootstrap the chapter needs.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=bootstrap]
+----
+
+It scans `com.embabel.cookbook` so the chapter agent is discovered as a Spring bean and then deployed into the `AgentPlatform`.
+The agent is deployed automatically because the Spring scanner sees the `@Agent` stereotype.
+
+==== Typed Flow
+
+The action chain is intentionally typed so the planner can move from one domain object to the next.
+The first action classifies the user request, the next action returns either a `Flight` or an `Itinerary`, and the final action converts that into a `TravelRecommendation`.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=classify-request]
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=find-flight]
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=build-itinerary]
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=summarize]
+----
+
+The important part is the type flow:
+`UserInput` -> `TravelRequest` -> `FlightRequest` or `ItineraryRequest` -> `Flight` or `Itinerary` -> `TravelRecommendation`.
+That flow is what the planner follows when it chooses the next action.
+When the return type changes, the planner can advance to the next action without hard-coded branching.
+
+==== Test Wiring
+
+The chapter test exercises the chain from the outside.
+It autowires `AgentPlatform`, which is the entry point for runtime invocation.
+It also uses `Ai` inside the agent actions so each typed step can call the configured LLM directly.
+The default LLM comes from `src/test/resources/application-cookbook-test.properties`, which is loaded by the `cookbook-test` profile.
+That file sets `embabel.models.default-llm=gpt-4.1-mini` for the chapter tests.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=flight-request-test]
+include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=itinerary-request-test]
+----
+
+The test only checks that the result exists and is nonblank.
+That keeps the recipe stable even though the model output itself can vary.
+The included source snippets show the bootstrapped agent, the injected `Ai`, the action boundaries, the LLM call, and the `AgentInvocation` entry point.
+
+==== LLM Invocation
+
+Each action uses <<cookbook.action-domain-type-chaining.llm,`ai.withDefaultLlm().createObject(...)`>> to turn prompt text into a typed domain object.
+This is the key boundary in the recipe: the agent chooses the step, and the LLM fills in the typed result for that step.
+The model choice itself is not hard-coded in the action; it comes from the active test profile configuration.
+
+=== Conclusion
+
+This recipe demonstrates the practical agent bootstrap mechanism.
+Spring discovers the agent, Embabel reads the metadata, the platform deploys it, and `AgentInvocation` runs the typed flow end to end.

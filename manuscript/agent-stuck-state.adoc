@@ -1,0 +1,124 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Agent Stuck State
+
+=== Introduction
+
+This chapter shows what happens when the planner runs out of eligible actions.
+The agent first classifies the user input into either `TravelInquiry` or `NonTravelInquiry`.
+If the input looks like travel, the planner can continue and produce a travel recommendation.
+If the input is not travel-related, the classifier returns `NonTravelInquiry` and no action matches it, so the process becomes stuck.
+The chapter also logs the blackboard through `OperationContext` so you can see the facts the planner is reasoning over.
+In the stuck case, the process does not fail before the first action.
+It fails after `classifyRequest` has run, returned `NonTravelInquiry`, and left `buildTravelRecommendation` with no matching `TravelInquiry`.
+
+[[cookbook.agent-stuck-state.key-concepts]]
+=== Key Concepts
+
+[[cookbook.agent-stuck-state.agent]]
+`@Agent` marks the class that Spring discovers and Embabel deploys for this chapter.
+
+[[cookbook.agent-stuck-state.condition]]
+The chapter does not need a separate `@Condition`; the type returned by the classifier determines whether the next action is eligible.
+
+[[cookbook.agent-stuck-state.blackboard]]
+`OperationContext` exposes the blackboard so the agent can log the facts that are already available.
+
+[[cookbook.agent-stuck-state.stuck]]
+`STUCK` is the state the planner reaches when no remaining action can satisfy the current blackboard facts.
+
+* <<cookbook.agent-stuck-state.agent,`@Agent`>> marks the Spring component that Embabel deploys.
+* `OperationContext` gives the agent access to the blackboard for logging the current facts.
+* `TravelInquiry` and `NonTravelInquiry` model the two branches of the classifier.
+* `STUCK` is the failure state used when no eligible action remains.
+
+=== How It Works
+
+==== Bootstrap
+
+The chapter uses the shared cookbook test bootstrap.
+Spring scans the cookbook test package, Embabel deploys the chapter agent, and the test invokes the agent through `AgentInvocation`.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=bootstrap]
+----
+
+==== Blackboard Logging
+
+The first action inspects the user input, classifies it, and logs the current blackboard.
+That is the point where you can see exactly what the planner knows before it tries to continue.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=classify-request]
+----
+
+The analysis step logs the blackboard through `OperationContext`, so you can inspect the current facts before the planner continues.
+
+==== Recommendation Action
+
+If the classifier returns a travel request, the planner can continue into the recommendation action.
+That action is the only one eligible in the positive case.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=build-travel-recommendation]
+----
+
+==== Stuck Path
+
+The travel request test completes because `classifyRequest` returns `TravelInquiry`, which makes `buildTravelRecommendation` eligible.
+The dog test gets stuck after `classifyRequest` returns `NonTravelInquiry`.
+At that point the planner reevaluates the blackboard, sees that `buildTravelRecommendation` requires a `TravelInquiry`, and has no eligible next action left.
+The invocation from `TravelRecommendation` starts the run from the target output type, but the dog input is not travel-related, so the planner reaches `STUCK` immediately after the classification step.
+The `<1>` marker on the test line points to the invocation that starts the run.
+
+*stuck at:* `keen_wilbur` has a `NonTravelInquiry`, so no action can continue.
+
+[source,text]
+----
+20:37:59.299 [main] INFO  AgentStuckStateTest - Running dog stuck-state test
+20:37:59.319 [main] INFO  Embabel - [interesting_lewin] created
+20:37:59.320 [main] INFO  Embabel - [interesting_lewin] object added: UserInput
+20:37:59.326 [embabel-platform-0] INFO  Embabel - [interesting_lewin] ready to plan from:
+  {it:com.embabel.agent.domain.io.UserInput=TRUE, it:com.embabel.cookbook.RequestClassification=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.classifyRequest=FALSE, it:com.embabel.cookbook.TravelInquiry=FALSE, it:com.embabel.cookbook.travel.domain.TravelRecommendation=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.buildTravelRecommendation=FALSE, it:com.embabel.cookbook.NonTravelInquiry=FALSE, it:java.lang.Record=FALSE}
+20:37:59.356 [embabel-platform-0] INFO  Embabel - [interesting_lewin] formulated plan:
+  com.embabel.cookbook.ActionStuckStateAgent.classifyRequest -> com.embabel.cookbook.ActionStuckStateAgent.buildTravelRecommendation
+  from:
+  {it:com.embabel.agent.domain.io.UserInput=TRUE, it:com.embabel.cookbook.RequestClassification=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.classifyRequest=FALSE, it:com.embabel.cookbook.TravelInquiry=FALSE, it:com.embabel.cookbook.travel.domain.TravelRecommendation=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.buildTravelRecommendation=FALSE, it:com.embabel.cookbook.NonTravelInquiry=FALSE, it:java.lang.Record=FALSE}
+20:37:59.357 [embabel-platform-0] INFO  Embabel - [interesting_lewin] executing action com.embabel.cookbook.ActionStuckStateAgent.classifyRequest
+20:37:59.361 [embabel-platform-0] INFO  ActionStuckStateAgent - Stuck-state blackboard: [UserInput(content=Tell me about my dog, timestamp=2026-07-08T00:37:59.303086564Z)]
+20:37:59.362 [embabel-platform-0] INFO  Embabel - [interesting_lewin] object bound it:NonTravelInquiry
+20:37:59.363 [embabel-platform-0] INFO  Embabel - [interesting_lewin] executed action com.embabel.cookbook.ActionStuckStateAgent.classifyRequest in PT0.001S
+20:37:59.365 [embabel-platform-0] INFO  Embabel - [interesting_lewin] ready to plan from:
+  {it:com.embabel.agent.domain.io.UserInput=TRUE, it:com.embabel.cookbook.RequestClassification=TRUE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.classifyRequest=TRUE, it:com.embabel.cookbook.TravelInquiry=FALSE, it:com.embabel.cookbook.travel.domain.TravelRecommendation=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.buildTravelRecommendation=FALSE, it:com.embabel.cookbook.NonTravelInquiry=TRUE, it:java.lang.Record=TRUE}
+20:37:59.389 [embabel-platform-0] INFO  Embabel - [interesting_lewin] stuck at:
+  {it:com.embabel.agent.domain.io.UserInput=TRUE, it:com.embabel.cookbook.RequestClassification=TRUE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.classifyRequest=TRUE, it:com.embabel.cookbook.TravelInquiry=FALSE, it:com.embabel.cookbook.travel.domain.TravelRecommendation=FALSE, hasRun_com.embabel.cookbook.ActionStuckStateAgent.buildTravelRecommendation=FALSE, it:com.embabel.cookbook.NonTravelInquiry=TRUE, it:java.lang.Record=TRUE}
+20:37:59.389 [embabel-platform-0] WARN  SimpleAgentProcess - Process interesting_lewin is stuck with no StuckHandler. This may or may not be an error. History (1):
+	com.embabel.cookbook.ActionStuckStateAgent.classifyRequest
+----
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=travel-test]
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=dog-test]
+----
+
+<1> `AgentInvocation` starts the run from `TravelRecommendation`; the dog input is not travel-related, so the classifier returns `NonTravelInquiry` and the process reaches `STUCK`.
+
+==== Request Model
+
+The chapter uses a tiny pair of request types to model the branch.
+That keeps the failure case deterministic and easy to read.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=request-classification]
+----
+
+=== Conclusion
+
+This recipe shows the planner failure mode in a controlled way.
+You can see the blackboard before the branch decision, and you can see `STUCK` when no action is eligible to continue the run.

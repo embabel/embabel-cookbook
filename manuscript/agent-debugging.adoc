@@ -1,0 +1,42 @@
+== Agent Debugging
+
+=== Introduction
+When an agent application starts correctly, a lot of wiring happens before the first invocation runs.
+This chapter traces that boot path from the cookbook dependency in the POM to the beans, properties, and metadata readers that make agent deployment work.
+
+[[cookbook.agent-debugging.key-concepts]]
+=== Key Concepts
+
+[[cookbook.agent-debugging.starter]]
+`com.embabel.agent:embabel-agent-starter-openai` is the cookbook dependency that pulls in the platform and OpenAI auto-configuration.
+
+[[cookbook.agent-debugging.autoconfig]]
+`AgentOpenAiAutoConfiguration` and `AgentPlatformAutoConfiguration` are the auto-configuration entry points that Spring Boot imports during startup.
+
+[[cookbook.agent-debugging.properties]]
+`AgentPlatformPropertiesLoader`, `AgentPlatformProperties`, and `OpenAiProperties` are the property-loading and property-binding types that turn configuration files into runtime settings.
+
+[[cookbook.agent-debugging.scanning]]
+`ScanConfiguration`, `AgentScanningPostProcessorDelegate`, `AgentMetadataReader`, `DelegatingAgentScanningBeanPostProcessor`, and `AgentDeployer` are the types that discover agent classes and deploy them into the platform.
+
+=== How It Works
+
+* `pom.xml` declares `com.embabel.agent:embabel-agent-starter-openai`, so the cookbook app gets both the platform runtime and the OpenAI model wiring on the classpath.
+* Spring Boot reads `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` from the starter dependencies and imports `com.embabel.agent.autoconfigure.models.openai.AgentOpenAiAutoConfiguration` before `com.embabel.agent.autoconfigure.platform.AgentPlatformAutoConfiguration`.
+* `AgentOpenAiAutoConfiguration` imports `com.embabel.agent.config.models.openai.OpenAiModelsConfig`, which binds `OpenAiProperties` under `embabel.agent.platform.models.openai.*` and provides the OpenAI model setup used by the platform.
+* `AgentPlatformAutoConfiguration` imports `CommonPlatformPropertiesLoader`, `ScanConfiguration`, `AgentPlatformConfiguration`, `ToolGroupsConfiguration`, and `EmbeddingTrackingConfiguration`.
+* `CommonPlatformPropertiesLoader` and `AgentPlatformPropertiesLoader` load the platform properties from classpath resources; `AgentPlatformPropertiesLoader` reads `classpath:agent-platform.properties` and `classpath:agent-application.properties`.
+* `ScanConfiguration` applies `@ConfigurationPropertiesScan` and `@ComponentScan` to the core Embabel packages: `com.embabel.agent.api`, `com.embabel.agent.core`, `com.embabel.agent.experimental`, `com.embabel.agent.prompt`, `com.embabel.agent.spi`, `com.embabel.agent.test`, `com.embabel.agent.tools`, and `com.embabel.agent.web`.
+* `AgentPlatformProperties` binds the platform configuration tree, including `scanning`, `ranking`, `llmOperations`, `processIdGeneration`, `autonomy`, `models`, `sse`, `rest`, `test`, `actionQos`, and `threading`.
+* `AgentPlatformConfiguration` contributes the core runtime beans: `nameGenerator`, `agentInstrumentation`, `toolDecorator`, `templateRenderer`, `defaultLogger`, `eventListener`, `defaultColorPalette`, `embabelJacksonObjectMapper`, `ranker`, `agentProcessRepository`, `contextRepository`, `toolGroupResolver`, `toolsStats`, `actionScheduler`, `modelProvider`, `autoLlmSelectionCriteriaResolver`, and `outputChannel`.
+* `ToolGroupsConfiguration` contributes the tool group beans that the platform can expose, including `mathToolGroup`, `mcpWebToolsGroup`, `mapsToolsGroup`, `browserAutomationWebToolsGroup`, and `githubToolsGroup`.
+* `EmbeddingTrackingConfiguration` contributes `embeddingTrackingBeanPostProcessor`, which lets the platform observe embedding-related work when the relevant listeners are present.
+* `DelegatingAgentScanningBeanPostProcessor` buffers beans during startup, then, after the context refresh, looks up `AgentScanningPostProcessorDelegate` from the application context and hands the queued beans to it.
+* `AgentScanningPostProcessorDelegate` performs the actual scan of candidate beans and uses `AgentMetadataReader` to inspect `@Agent`, `@Action`, `@Condition`, and `@AchievesGoal`.
+* `AgentMetadataReader` turns those annotations into deployable agent metadata.
+* `AgentDeployer` takes the discovered agents, the `AgentPlatform`, and the scanning properties, then deploys the agents into the running platform.
+* When startup looks wrong, the first places to inspect are the starter dependency in `pom.xml`, the auto-configuration imports, the property loader logs, and the metadata-reader or deployer logs.
+
+=== Conclusion
+The boot path is not magic: it is a chain of imported auto-configurations, property loaders, scanners, and deployers.
+If you can follow those classes in order, you can usually explain why an agent did or did not get deployed.

@@ -1,0 +1,57 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Action Heuristics
+
+=== Introduction
+
+This chapter shows how Embabel chooses between two eligible actions that have the same input and output shape.
+The difference is not a condition gate.
+It is the action cost.
+Both actions are eligible, and the planner prefers the cheaper action when both can satisfy the goal.
+
+[[cookbook.action-heuristics.key-concepts]]
+=== Key Concepts
+
+[[cookbook.action-heuristics.cost]]
+`cost` gives the planner a static preference for one action over another.
+
+[[cookbook.action-heuristics.goal]]
+`@AchievesGoal` tells the planner that either action can finish the run.
+
+=== How It Works
+
+==== Bootstrap
+
+The chapter uses the shared cookbook test bootstrap.
+Spring loads the cookbook application and the heuristics profile, then Embabel deploys the agent.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionHeuristicsTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+Both actions accept the same `UserInput` and return the same `TravelRecommendation`.
+The only difference is the cost value, so the planner should prefer the cheaper branch.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionHeuristicsTest.java[tag=agent]
+----
+
+==== Test Wiring
+
+The test asks for a travel recommendation and checks that the cheaper action was the one executed.
+The log excerpt shows the planner considering the available actions and selecting the lower-cost branch.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionHeuristicsTest.java[tag=test]
+----
+
+=== Conclusion
+
+`cost` is the right tool when multiple actions are eligible and one should be preferred.
+This chapter keeps the comparison deterministic by using two actions with the same signature and different static costs.

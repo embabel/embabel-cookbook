@@ -1,0 +1,93 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Repeat Until Acceptable
+
+=== Introduction
+
+This chapter shows the repeat-until pattern Embabel uses when one pass is not enough.
+The agent generates a travel itinerary, evaluates it, and repeats until the score crosses an acceptance threshold.
+The loop is deterministic here because the evaluator is part of the code, not an external judgment call.
+
+[[cookbook.repeat-until-acceptable.key-concepts]]
+=== Key Concepts
+
+[[cookbook.repeat-until-acceptable.repeatuntilacceptablebuilder]]
+`RepeatUntilAcceptableBuilder` builds a loop that keeps revising a result until the evaluator accepts it.
+
+[[cookbook.repeat-until-acceptable.textfeedback]]
+`Feedback` is the loop contract.
+`TextFeedback` is the framework's built-in score-plus-message feedback type in this API artifact.
+It is not the business result; it is the value returned by the evaluator lambda inside `withEvaluator(...)`.
+The evaluator returns `TextFeedback(score, feedback)`.
+`withScoreThreshold(0.8)` reads `Feedback.getScore()` from that object.
+The loop compares that score to `0.8` to decide whether to repeat or stop, and it carries the `feedback` text into the next revision prompt.
+In this API jar, `Feedback` is the interface and `TextFeedback` is the concrete implementation shown by the repeat-until examples.
+
+[[cookbook.repeat-until-acceptable.threshold]]
+`withScoreThreshold(0.8)` compares against `Feedback.getScore()`.
+That means any score below `0.8` repeats, and any score at or above `0.8` stops the loop.
+`withMaxIterations` is the safety cap that stops the loop even if the score never reaches the threshold.
+
+=== How It Works
+
+==== Bootstrap
+
+The chapter uses the shared cookbook test bootstrap.
+Spring loads the cookbook application and the repeat-until profile, then Embabel deploys the agent.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/RepeatUntilAcceptableTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+The action builds a repeat-until acceptable sub-process.
+It revises the itinerary, evaluates the latest attempt, and stops once the score reaches the threshold.
+The loop returns an `Itinerary`, not a `TextFeedback`, because the feedback is internal control data while the itinerary is the actual business result.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/RepeatUntilAcceptableTest.java[tag=agent]
+----
+
+<1> `reviseUntilAcceptable` is the action entry point that owns the repeat-until loop.
+<2> `returning(Itinerary.class)` says the loop's final product is an itinerary.
+<3> `withMaxIterations(3)` caps the number of drafts the loop may produce.
+<4> `withScoreThreshold(0.8)` is the accept line: scores below it repeat, scores at or above it stop the loop.
+<5> `repeating(...)` generates each itinerary draft, using `lastAttempt()` to decide whether this is the first pass or a revision.
+`lastAttempt()` returns the previous loop `Attempt`, not `TextFeedback`.
+That `Attempt` contains the earlier `Itinerary` result and the `TextFeedback` that was returned for it.
+On the first pass it is `null`, so the action emits only `Day 1`.
+<6> `withEvaluator(...)` scores the latest itinerary and returns `TextFeedback`.
+The first draft gets `0.2`, which is below the `0.8` threshold, because it only contains `Day 1`.
+The revision gets `0.9`, which is above the threshold, because it contains the full three-day itinerary.
+That is why the loop accepts the revised itinerary and stops.
+`TextFeedback` carries the numeric score plus the explanatory message.
+The evaluator creates it.
+The loop reads only the score for control through `withScoreThreshold(0.8)`.
+The `feedback` message is carried forward as guidance for the next revision.
+`TextFeedback` is the evaluator output, while `lastAttempt()` is the previous input-output pair that lets the repeater see what happened last time.
+<7> `build()` turns the loop definition into an executable scope.
+<8> `asSubProcess(...)` runs the loop inside the enclosing action and returns the final `Itinerary`.
+
+==== Test Wiring
+
+The test starts the agent, waits for the sub-process to complete, and checks that the acceptable itinerary won the loop.
+The test proves two things: the loop finishes as `COMPLETED`, and the returned itinerary is the revised version that reached the acceptance score.
+The final itinerary is the full three-day version, because that is the one the evaluator scores above the threshold.
+The test does not assert the intermediate draft directly; the intermediate draft is only visible through the evaluation log.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/RepeatUntilAcceptableTest.java[tag=test]
+----
+
+<1> `AgentInvocation` starts the loop from `Itinerary`; the travel input drives the repeat-until run.
+The repeated drafts do not appear as separate top-level actions in the history, because the loop is running inside the single `reviseUntilAcceptable` action.
+
+=== Conclusion
+
+Repeat-until acceptable is the right pattern when the first itinerary may be close, but not good enough.
+The loop keeps the work local to the agent and makes the acceptance rule explicit.

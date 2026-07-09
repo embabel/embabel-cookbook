@@ -1,0 +1,65 @@
+== Object Creation
+
+=== Introduction
+Object creation is the part of the API that turns a prompt into a strongly typed Java object.
+This chapter uses the `Ai` gateway and the `PromptRunner.creating(...)` fluent API to create a structured travel summary from plain text.
+The next chapter will cover the nullable variant, `createObjectIfPossible(...)`.
+
+[[cookbook.object-creation.key-concepts]]
+=== Key Concepts
+
+[[cookbook.object-creation.ai]]
+`Ai` is the entry point for LLM work in application code.
+It gives you a `PromptRunner` with a chosen model configuration.
+
+[[cookbook.object-creation.llmoptions]]
+`LlmOptions` controls which model is selected and how the call behaves.
+It can set model selection, temperature, max tokens, top-p, top-k, thinking, and timeout.
+
+[[cookbook.object-creation.creating]]
+`PromptRunner.creating(...)` opens the fluent object-creation builder.
+The builder can add examples and validation before the prompt is executed.
+In this chapter, the target object has five fields and the chapter uses a travel system prompt to bias the request toward the right domain.
+
+[[cookbook.object-creation.create-if-possible]]
+`createObjectIfPossible(...)` is the nullable variant.
+It belongs to the next chapter because this chapter focuses on the successful creation path first.
+
+=== How It Works
+
+==== Bootstrap
+
+The test uses the cookbook Spring Boot application and injects `Ai` directly.
+No agent class is needed for this chapter because the point is the LLM object-creation API itself.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ObjectCreationTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+`Ai.withLlm(...)` produces a `PromptRunner` with the chosen LLM options.
+The fluent builder starts with `withSystemPrompt(...)` and `creating(...)`, then optionally adds an example object and optionally enables validation before the prompt is executed.
+Those steps are helpers, not requirements: each one can be used independently depending on how much guidance the model needs.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ObjectCreationTest.java[tag=test]
+----
+
+<1> `ai.withLlm(LlmOptions.withDefaultLlm().withTemperature(0.0))` picks the default LLM route and sets temperature for the prompt runner used by the call.
+<2> `withSystemPrompt(...)` adds a travel-assistant system instruction before the object-creation request starts.
+<3> `creating(TripSummary.class)` tells Embabel the exact type to create.
+<4> `withExample(...)` is an optional example object that shows the LLM the expected shape. In this test, the example is a different trip from the requested Paris summary and it includes a concrete itinerary description, so it demonstrates the structure without copying the answer.
+<5> `withValidation(true)` is optional validation; it tells Embabel to validate the generated object before returning it, but the chapter could skip validation if it only wanted raw object creation.
+<6> `fromPrompt(...)` is the call that actually triggers the LLM request and creates the object.
+
+==== Test Wiring
+
+The test asserts that the returned object is present and that all five fields were populated.
+That is enough to prove that the object-creation path produced a structured result rather than plain text, while the system prompt and example guide the model toward the travel domain and the expected shape.
+
+=== Conclusion
+`Ai` and `PromptRunner.creating(...)` are the right tools when you want typed output from a prompt.
+The next chapter will show the nullable creation path when the model may not have enough information to build the object.

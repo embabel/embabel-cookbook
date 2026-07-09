@@ -1,0 +1,50 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Chapter Title
+
+=== Introduction
+
+Short opening paragraph that explains the business scenario and the chapter goal.
+
+[[cookbook.chapter-slug.key-concepts]]
+=== Key Concepts
+
+[[cookbook.chapter-slug.concept-one]]
+`Concept one` explains the first important mechanism.
+
+[[cookbook.chapter-slug.concept-two]]
+`Concept two` explains the second important mechanism.
+
+=== How It Works
+
+==== Bootstrap
+
+Explain how the chapter is wired into Spring and Embabel.
+
+[source,java]
+----
+// include::../src/test/java/com/embabel/cookbook/ChapterTitleTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+Explain the core flow and include the relevant source block.
+
+[source,java]
+----
+// include::../src/test/java/com/embabel/cookbook/ChapterTitleTest.java[tag=agent]
+----
+
+==== Test Wiring
+
+Explain the test entry point and the assertions.
+
+[source,java]
+----
+// include::../src/test/java/com/embabel/cookbook/ChapterTitleTest.java[tag=test]
+----
+
+=== Conclusion
+
+One or two closing sentences that summarize what the chapter demonstrated.

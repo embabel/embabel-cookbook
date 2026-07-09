@@ -1,0 +1,31 @@
+= Embabel Agent Cookbook
+:doctype: book
+:lang: en
+:toc: left
+:toclevels: 3
+:sectnums:
+:chapter-label: Chapter
+:sectanchors:
+:source-highlighter: rouge
+:author: Rod Johnson; Jasper Blues; Igor Dayen; Alexander Hein-Heifetz
+:copyright: 2025-2026 Embabel Ltd.
+:publisher: Embabel Ltd.
+:isbn: TBD
+:revdate: 2026-07-04
+:mainsourcedir: {projectdir}/src/main/java
+:testsourcedir: {projectdir}/src/test/java
+
+== Introduction
+
+Executable recipes for building agents with Embabel.
+For contributors, the chapter manuscript files use lower-kebab-case and the matching test classes use UpperCamelCase; `book.adoc` controls the chapter order.
+
+include::action-domain-type-chaining.adoc[]
+include::action-condition.adoc[]
+include::agent-stuck-state.adoc[]
+include::action-heuristics.adoc[]
+include::repeat-until-acceptable.adoc[]
+
+include::agent-debugging.adoc[]
+
+include::object-creation.adoc[]

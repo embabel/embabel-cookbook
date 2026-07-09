@@ -1,0 +1,108 @@
+ifndef::mainsourcedir[:mainsourcedir: {projectdir}/../src/main/java]
+ifndef::testsourcedir[:testsourcedir: {projectdir}/../src/test/java]
+
+== Action Condition
+
+=== Introduction
+
+This chapter shows how Embabel uses `@Condition` to choose between mutually exclusive actions.
+The user asks for either a direct flight or a flight with at least one stop, and the planner picks the matching action after the request is analyzed.
+The main idea is straightforward: the agent analyzes the user input, sets the relevant conditions on the blackboard, and then the planner chooses exactly one branch.
+If the user asks for a direct flight, only the direct-flight action is eligible.
+If the user asks for a flight with stops, only the with-stops action is eligible.
+
+[[cookbook.action-condition.key-concepts]]
+=== Key Concepts
+
+[[cookbook.action-condition.agent]]
+`@Agent` marks the class that Spring discovers and Embabel deploys for this chapter.
+
+[[cookbook.action-condition.condition]]
+`@Condition` returns a boolean gate that the planner can use before it executes the next action.
+
+[[cookbook.action-condition.branch]]
+The chapter uses two branch actions: one for direct flights and one for flights with stops.
+
+[[cookbook.action-condition.plan]]
+The branch actions return a chapter-local `FlightPlan`, which keeps the summary step deterministic and avoids polluting the shared travel domain.
+
+* <<cookbook.action-condition.agent,`@Agent`>> marks the Spring component that Embabel deploys.
+* <<cookbook.action-condition.condition,`@Condition`>> marks the boolean gate that lets the planner choose a branch.
+* `FlightPlan` is the chapter-local branch output that keeps the summary deterministic.
+* The two branch actions are mutually exclusive and model the direct-flight and with-stops choices.
+
+=== How It Works
+
+==== Bootstrap
+
+The chapter uses the same shared cookbook test bootstrap as the rest of the book.
+Spring scans the cookbook test package, Embabel deploys the chapter agent, and the test invokes the agent through `AgentInvocation`.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=bootstrap]
+----
+
+==== Request Analysis
+
+The first action reads `UserInput` and turns it into a small routing request.
+That request carries the direct-flight decision that later conditions use.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=flight-routing-request]
+----
+
+The user input is not enough by itself.
+The chapter converts it into an explicit request object so the planner can reason over a concrete fact instead of a prompt guess.
+
+==== Branching
+
+The agent sets two conditions from the routing request:
+
+* `directFlightRequested`
+* `stopsAllowed`
+
+The planner then chooses the matching action.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=analyze-request]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=direct-flight-request]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=stops-allowed]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=build-direct-flight]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=build-flight-with-stops]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=summarize]
+----
+
+The interesting part is the branch selection:
+
+* direct requests execute `buildDirectFlight`
+* requests that allow stops execute `buildFlightWithStops`
+
+The branch actions return chapter-local plan types instead of forcing the shared domain to carry chapter-specific behavior.
+The tagged source snippets show the analysis action, the two `@Condition` gates, the two branch actions, and the final summary step.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=flight-plan]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=direct-flight-plan]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=connecting-flight-plan]
+----
+
+==== Test Wiring
+
+The test exercises both branches independently.
+One test feeds the direct-flight wording, the other feeds the with-stops wording.
+Both check that the process completes and that the recommendation is nonblank.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=direct-flight-test]
+include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=flight-with-stops-test]
+----
+
+=== Conclusion
+
+This recipe demonstrates practical `@Condition` usage.
+The agent reads a structured request, the planner evaluates the condition, and exactly one branch runs before the final recommendation is produced.
