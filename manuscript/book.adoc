@@ -20,6 +20,18 @@
 Executable recipes for building agents with Embabel.
 For contributors, the chapter manuscript files use lower-kebab-case and the matching test classes use UpperCamelCase; `book.adoc` controls the chapter order.
 
+[discrete]
+== Part 1: Agent Behavior
+
+This part covers planner behavior: type chaining, conditions, stuck state, heuristics, looping, and debugging.
+
+* <<action-domain-type-chaining,Action Domain Type Chaining>>
+* <<action-condition,Action Condition>>
+* <<agent-stuck-state,Agent Stuck State>>
+* <<action-heuristics,Action Heuristics>>
+* <<repeat-until-acceptable,Repeat Until Acceptable>>
+* <<agent-debugging,Agent Debugging>>
+
 include::action-domain-type-chaining.adoc[]
 include::action-condition.adoc[]
 include::agent-stuck-state.adoc[]
@@ -28,4 +40,20 @@ include::repeat-until-acceptable.adoc[]
 
 include::agent-debugging.adoc[]
 
+[discrete]
+== Part 2: Agentic AI APIs
+
+This part covers object creation, nullable creation, prompt contributions, and thinking.
+
+* <<object-creation,Object Creation>>
+* <<create-object-if-possible,Create Object If Possible>>
+* <<prompt-contributors,Prompt Contributors>>
+* <<thinking,Thinking>>
+
 include::object-creation.adoc[]
+
+include::create-object-if-possible.adoc[]
+
+include::prompt-contributors.adoc[]
+
+include::thinking.adoc[]

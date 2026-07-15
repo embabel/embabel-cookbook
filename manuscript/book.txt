@@ -1,8 +1,13 @@
 book.adoc
+Part 1: Agent Behavior
 action-domain-type-chaining.adoc
 action-condition.adoc
 agent-stuck-state.adoc
 action-heuristics.adoc
 repeat-until-acceptable.adoc
 agent-debugging.adoc
+Part 2: Agentic AI APIs
 object-creation.adoc
+create-object-if-possible.adoc
+prompt-contributors.adoc
+thinking.adoc

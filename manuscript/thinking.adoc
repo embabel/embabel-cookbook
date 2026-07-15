@@ -1,0 +1,83 @@
+== Thinking
+
+=== Introduction
+Thinking is the API for capturing the model's reasoning content while still getting a typed result.
+This chapter stays on the direct object-creation path: it shows a successful travel plan and a nullable failure case, both through `ThinkingResponse`.
+The cookbook test uses `ai.withDefaultLlm()` and then checks whether that runner supports thinking before turning the call into a thinking-aware request.
+
+[[cookbook.thinking.key-concepts]]
+=== Key Concepts
+
+[[cookbook.thinking.prompt-runner]]
+`PromptRunner.thinking()` enables reasoning extraction for the current LLM call.
+It only works when the selected model advertises thinking support.
+
+[[cookbook.thinking.thinking-response]]
+`ThinkingResponse<T>` is the framework wrapper that carries both the typed result and the extracted reasoning content.
+The `result` is the created object or `null`; the `thinkingBlocks` list contains the reasoning text the model produced.
+The chapter uses the shared `TravelPlan` record from the cookbook domain so the result type is reusable across chapters.
+
+[[cookbook.thinking.create-object]]
+`createObject(...)` returns a `ThinkingResponse<T>` when the prompt contains enough information.
+The chapter uses it for the positive case.
+
+[[cookbook.thinking.create-object-if-possible]]
+`createObjectIfPossible(...)` returns a `ThinkingResponse<T?>` when the prompt may be incomplete.
+The chapter uses it for the nullable case.
+
+=== How It Works
+
+==== Bootstrap
+
+The test uses the cookbook Spring Boot application and injects `Ai` directly.
+No agent class is needed because the chapter is about the thinking-aware object-creation API.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ThinkingTest.java[tag=bootstrap]
+----
+
+==== Positive Path
+
+The positive test selects the cookbook default LLM, adds a system prompt that asks for a separate `<decision_reasoning>` block, checks that the runner supports thinking, and then creates a typed `TravelPlan`.
+The returned `ThinkingResponse` contains the created object, and it also surfaces the extracted reasoning content when the model emits it.
+In this run, the extracted block is tagged `decision_reasoning`, and the chapter log shows both the block content and the tag metadata.
+`getThinkingContent()` prints the reasoning text, while the underlying `ThinkingBlock` also carries the tag name.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ThinkingTest.java[tag=positive]
+----
+
+<1> `ai.withDefaultLlm()` selects the cookbook default model, which is configured in `application-cookbook-test.properties`.
+<2> `supportsThinking()` verifies that the selected model can actually produce thinking blocks.
+<3> `withSystemPrompt(...)` injects the instruction that reasoning must appear inside `<decision_reasoning>`.
+<4> `runner.thinking()` switches the prompt runner into thinking-aware object creation.
+<5> `createObject(...)` asks for a typed travel plan and returns a `ThinkingResponse`.
+`hasResult()` and `hasThinking()` prove that the call produced both a structured result and extracted reasoning content.
+The logged reasoning content comes from the `decision_reasoning` block in the response.
+
+==== Nullable Path
+
+The nullable test uses the same thinking-aware runner and the same system prompt, but passes an intentionally incomplete user prompt.
+This is different from the plain nullable API, which would return `null` directly. Here, the thinking-aware call returns a `ThinkingResponse` whose `result` is `null` and whose exception carries the failure information for the impossible request.
+In this chapter, the useful text is the exception message, such as `Impossible: half-day from New York to Sydney is infeasible.`
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ThinkingTest.java[tag=nullable]
+----
+
+<1> `ai.withDefaultLlm()` matches the positive test and keeps the model selection centralized in the test properties.
+<2> `supportsThinking()` verifies that the selected model can actually produce thinking blocks.
+<3> `withSystemPrompt(...)` injects the same reasoning instruction as the positive case.
+<4> `runner.thinking()` switches the prompt runner into thinking-aware object creation.
+<5> `createObjectIfPossible(...)` is the nullable thinking-aware API.
+The prompt is intentionally incomplete, so the model has too little travel detail to build a typed plan.
+`result` is expected to be `null`, but the response object itself still exists.
+The failure is surfaced through `response.getException()`, whose message explains why the object could not be created. That is the key difference from the plain nullable API, which would return `null` directly.
+
+=== Conclusion
+`ThinkingResponse` is useful when you want typed output and the reasoning that produced it.
+Use `createObject(...)` when the prompt should be enough, and `createObjectIfPossible(...)` when the prompt may be incomplete.
+If the nullable thinking-aware path fails, the wrapper still exists and the failure is carried in `response.getException()`.

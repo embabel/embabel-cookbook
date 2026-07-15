@@ -1,0 +1,53 @@
+== Prompt Contributors
+
+=== Introduction
+Prompt contributors let you build a prompt from structured message objects instead of one concatenated string.
+This chapter uses `SystemMessage` and `UserMessage` to create a travel plan from a message list.
+
+[[cookbook.prompt-contributors.key-concepts]]
+=== Key Concepts
+
+[[cookbook.prompt-contributors.messages]]
+`SystemMessage` carries system-level instructions for the LLM.
+`UserMessage` carries the request from the user.
+Together they form a message list that the runner can send to the model.
+
+[[cookbook.prompt-contributors.creating]]
+`PromptRunner.creating(...)` opens the fluent object-creation builder.
+`fromMessages(...)` executes the request using a list of message objects instead of a single string.
+
+=== How It Works
+
+==== Bootstrap
+
+The test uses the cookbook Spring Boot application and injects `Ai` directly.
+No agent class is needed because the chapter is about composing prompt messages before object creation.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/PromptContributorsTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+The test builds a `List<Message>` from a `SystemMessage` and two `UserMessage` objects, then hands that message list to `PromptRunner.creating(...).fromMessages(...)`.
+That keeps the prompt contributions visible as separate pieces instead of hiding them in one large string.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/PromptContributorsTest.java[tag=test]
+----
+
+<1> `ai.withDefaultLlm()` selects the cookbook default model from the test properties.
+<2> The message list is built from `SystemMessage` and `UserMessage` objects so the prompt stays structured.
+<3> `creating(TravelPlan.class)` tells Embabel which type to create.
+<4> `fromMessages(messages)` executes the object creation from the assembled message list.
+
+==== Test Wiring
+
+The test checks that the returned `TravelPlan` is present and that its fields were populated from the message list.
+That proves the prompt was composed from message contributors rather than a single raw prompt string.
+
+=== Conclusion
+Use message lists when you want prompt composition to be explicit.
+`SystemMessage` and `UserMessage` make the request easier to inspect, reuse, and debug.

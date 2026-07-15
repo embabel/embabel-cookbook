@@ -1,0 +1,56 @@
+== Create Object If Possible
+
+=== Introduction
+`createObjectIfPossible(...)` is the nullable form of object creation.
+It is the right choice when a prompt may or may not contain enough structured facts to build the target object.
+This chapter uses the travel domain and focuses on graceful failure when the input is incomplete.
+
+[[cookbook.create-object-if-possible.key-concepts]]
+=== Key Concepts
+
+[[cookbook.create-object-if-possible.prompt-runner]]
+`PromptRunner` is the API entry point.
+It exposes `createObjectIfPossible(...)` so code can ask for a typed object and get `null` when the prompt is not sufficient.
+
+[[cookbook.create-object-if-possible.travel-request]]
+`ItineraryRequest` is the target type in this chapter.
+It gives the chapter a concrete travel object to extract from plain text.
+
+[[cookbook.create-object-if-possible.nullability]]
+The nullable return type is the point of the chapter.
+The positive case returns a populated request; the negative case returns `null`.
+The important detail is that the API does not throw on missing information; it logs a warning and returns `null`.
+
+=== How It Works
+
+==== Test Shape
+
+This chapter is test-driven, like the other cookbook chapters, but it does not need an agent class.
+The test uses the LLM API directly and shows both a successful extraction and an insufficient input case.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/CreateObjectIfPossibleTest.java[tag=test]
+----
+
+==== Step by Step
+
+<1> `createObjectIfPossible(...)` is the nullable object-creation API used in this chapter; it asks the LLM to build a typed result and returns `null` when the prompt is insufficient.
+<2> The positive prompt includes enough itinerary detail to build a request: travel dates, destination, and a few concrete activities.
+<3> `createObjectIfPossible(...)` is the same nullable API in the negative case.
+<4> The negative prompt is intentionally incomplete, so the API has nothing reliable to extract.
+
+==== Failure Proof
+
+The negative case is visible in the runtime log:
+
+[source,text]
+----
+17:35:16.286 [main] WARN  OperationContextDelegate - Failed to create object of type com.embabel.cookbook.travel.domain.ItineraryRequest with messages [UserMessage(from='User', content='Plan a trip.
+')]: Insufficient details to plan a trip
+----
+
+That warning is the proof point for the chapter: the API returns `null` when the prompt is insufficient, and it does so without raising an exception.
+
+=== Conclusion
+`createObjectIfPossible(...)` is the right API when the application wants a typed result but must also handle missing information gracefully.

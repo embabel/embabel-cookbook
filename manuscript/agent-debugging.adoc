@@ -3,6 +3,7 @@
 === Introduction
 When an agent application starts correctly, a lot of wiring happens before the first invocation runs.
 This chapter traces that boot path from the cookbook dependency in the POM to the beans, properties, and metadata readers that make agent deployment work.
+The boundary matters: Spring still creates the `@Agent` bean and manages its lifecycle, while Embabel reads the annotations and deploys the bean as an agent.
 
 [[cookbook.agent-debugging.key-concepts]]
 === Key Concepts
@@ -18,6 +19,7 @@ This chapter traces that boot path from the cookbook dependency in the POM to th
 
 [[cookbook.agent-debugging.scanning]]
 `ScanConfiguration`, `AgentScanningPostProcessorDelegate`, `AgentMetadataReader`, `DelegatingAgentScanningBeanPostProcessor`, and `AgentDeployer` are the types that discover agent classes and deploy them into the platform.
+The `@Agent` class is still a normal Spring bean, so the Spring container is responsible for instantiating it, injecting its dependencies, and keeping it in the application context.
 
 === How It Works
 
@@ -31,10 +33,12 @@ This chapter traces that boot path from the cookbook dependency in the POM to th
 * `AgentPlatformConfiguration` contributes the core runtime beans: `nameGenerator`, `agentInstrumentation`, `toolDecorator`, `templateRenderer`, `defaultLogger`, `eventListener`, `defaultColorPalette`, `embabelJacksonObjectMapper`, `ranker`, `agentProcessRepository`, `contextRepository`, `toolGroupResolver`, `toolsStats`, `actionScheduler`, `modelProvider`, `autoLlmSelectionCriteriaResolver`, and `outputChannel`.
 * `ToolGroupsConfiguration` contributes the tool group beans that the platform can expose, including `mathToolGroup`, `mcpWebToolsGroup`, `mapsToolsGroup`, `browserAutomationWebToolsGroup`, and `githubToolsGroup`.
 * `EmbeddingTrackingConfiguration` contributes `embeddingTrackingBeanPostProcessor`, which lets the platform observe embedding-related work when the relevant listeners are present.
+* Spring then instantiates the `@Agent` class like any other bean, wires its constructor arguments, and registers it in the application context.
 * `DelegatingAgentScanningBeanPostProcessor` buffers beans during startup, then, after the context refresh, looks up `AgentScanningPostProcessorDelegate` from the application context and hands the queued beans to it.
 * `AgentScanningPostProcessorDelegate` performs the actual scan of candidate beans and uses `AgentMetadataReader` to inspect `@Agent`, `@Action`, `@Condition`, and `@AchievesGoal`.
-* `AgentMetadataReader` turns those annotations into deployable agent metadata.
+* `AgentMetadataReader` reads the Spring-managed bean class and turns those annotations into deployable agent metadata.
 * `AgentDeployer` takes the discovered agents, the `AgentPlatform`, and the scanning properties, then deploys the agents into the running platform.
+* Spring owns the bean instance; Embabel uses the metadata and deployment path to make that bean available as an agent.
 * When startup looks wrong, the first places to inspect are the starter dependency in `pom.xml`, the auto-configuration imports, the property loader logs, and the metadata-reader or deployer logs.
 
 === Conclusion
