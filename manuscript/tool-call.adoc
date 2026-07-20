@@ -1,0 +1,47 @@
+== Tool Call
+
+=== Introduction
+
+Tools let the LLM gather external information before producing a structured result.
+Instead of relying solely on training data, the model calls your methods, receives their output, and uses it to inform the final object it returns.
+This chapter shows how to expose tools to a `PromptRunner` and produce a `TravelPlan` backed by live tool results.
+
+[[cookbook.tool-call.key-concepts]]
+=== Key Concepts
+
+`@LlmTool` marks a method as callable by the LLM during inference.
+`withToolObject(...)` registers an instance whose `@LlmTool` methods become available to the model.
+`withToolCallInspectors(...)` attaches callbacks that log each tool invocation and its result.
+`creating(TravelPlan.class).fromPrompt(...)` runs the prompt, allowing the model to call tools before returning the typed result.
+
+=== How It Works
+
+==== Tooling
+
+The `TravelTooling` class exposes two methods to the LLM.
+Each method receives a destination string from the model and returns a hardcoded but realistic response.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ToolCallTest.java[tag=tooling]
+----
+
+==== Main Flow
+
+The test wires the tooling into a `PromptRunner` and asks for a `TravelPlan`.
+The model calls the tools, receives their responses, and uses them to populate the result.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/ToolCallTest.java[tag=test]
+----
+
+<1> `withToolObject(new TravelTooling())` makes `getWeather` and `getTopAttractions` available to the model.
+<2> `withToolCallInspectors(...)` logs each tool call and its result at INFO level.
+<3> `creating(TravelPlan.class)` tells the runner to produce a typed `TravelPlan`.
+<4> The prompt instructs the model to use tools before recommending a plan.
+
+=== Conclusion
+
+Annotate methods with `@LlmTool`, register the object with `withToolObject(...)`, and the model will call them as needed before returning the typed result.
+Tool call inspectors are optional but useful for observing which tools were called and what they returned.

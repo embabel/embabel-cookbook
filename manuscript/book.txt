@@ -11,3 +11,4 @@ object-creation.adoc
 create-object-if-possible.adoc
 prompt-contributors.adoc
 thinking.adoc
+streaming.adoc

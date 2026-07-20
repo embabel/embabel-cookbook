@@ -43,12 +43,14 @@ include::agent-debugging.adoc[]
 [discrete]
 == Part 2: Agentic AI APIs
 
-This part covers object creation, nullable creation, prompt contributions, and thinking.
+This part covers object creation, nullable creation, prompt contributions, thinking, streaming, and tool calls.
 
 * <<object-creation,Object Creation>>
 * <<create-object-if-possible,Create Object If Possible>>
 * <<prompt-contributors,Prompt Contributors>>
 * <<thinking,Thinking>>
+* <<streaming,Streaming>>
+* <<tool-call,Tool Call>>
 
 include::object-creation.adoc[]
 
@@ -57,3 +59,9 @@ include::create-object-if-possible.adoc[]
 include::prompt-contributors.adoc[]
 
 include::thinking.adoc[]
+
+include::streaming.adoc[]
+
+include::tool-call.adoc[]
+
+include::further-reading.adoc[]

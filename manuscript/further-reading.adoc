@@ -1,0 +1,6 @@
+== Further Reading
+
+The recipes in this cookbook cover common patterns, but Embabel Agent has much more to offer.
+
+* https://docs.embabel.com/embabel-agent/guide/1.0.0/index.html#overview__overview[Embabel Agent Reference Guide] — full documentation covering all APIs, configuration, and advanced features.
+* https://hub.embabel.com/[Embabel Hub] — community resources, examples, and published agents.

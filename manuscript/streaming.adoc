@@ -1,0 +1,67 @@
+== Streaming
+
+=== Introduction
+Streaming allows you to consume typed results as they arrive instead of waiting for a single final object.
+This chapter streams three travel itineraries, records them as they arrive, and checks that the stream completes.
+
+[[cookbook.streaming.key-concepts]]
+=== Key Concepts
+
+[[cookbook.streaming.builder]]
+`StreamingPromptRunnerBuilder` adapts a `PromptRunner` to the streaming API.
+`supportsStreaming()` tells you whether the selected model can stream.
+`createObjectStream(...)` parses a newline-delimited JSON response into typed objects.
+`doOnNext(...)` lets the test handle each streamed itinerary as soon as it appears.
+`Itinerary` is the shared travel-domain record used for the streamed results.
+
+=== How It Works
+
+==== Bootstrap
+
+The test uses the cookbook Spring Boot application and injects `Ai` directly.
+No agent class is needed because the chapter is about streaming typed objects from a prompt.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/StreamingTest.java[tag=bootstrap]
+----
+
+==== Main Flow
+
+The test asks for exactly three itinerary objects, one per JSON line, and handles each one in `doOnNext(...)`.
+That keeps the request explicit and lets the test assert on the streamed objects and completion callback.
+
+[source,java]
+----
+include::../src/test/java/com/embabel/cookbook/StreamingTest.java[tag=test]
+----
+
+<1> `ai.withDefaultLlm()` selects the cookbook default model from the test properties.
+<2> `supportsStreaming()` confirms the selected model can stream before the builder is used.
+<3> `itineraries` is a thread-safe list that records objects as they stream in.
+<4> `errorOccurred` captures any streaming failure.
+<5> `completionCalled` records when the stream finishes normally.
+<6> `new StreamingPromptRunnerBuilder(runner).streaming()` opens the streaming API.
+<7> The prompt asks for exactly three itinerary objects as separate JSON lines.
+<8> `createObjectStream(Itinerary.class)` parses the response into `Itinerary` objects.
+<9> `blockLast(...)` keeps the subscription alive until the stream completes.
+
+NOTE: `doOnNext(...)` fires for each object the moment it is parsed from the stream.
+Streaming uses https://projectreactor.io/[Project Reactor] — `Flux<T>` pushes results to subscribers without blocking the calling thread.
+
+==== Test Wiring
+
+The test checks that three `Itinerary` objects arrive, that the stream completes, and that each itinerary contains text.
+That proves the stream is producing typed objects incrementally rather than one final blob of text.
+The staggered log timestamps show the items arriving on separate callback invocations over time.
+
+[source,text]
+----
+10:25:45.694 [loomBoundedElastic-63] INFO  StreamingTest - Streamed itinerary: Option 1: Day 1: Eurostar to Paris, check in, evening stroll along the Seine and dinner in Saint-Germain. Day 2: Louvre, Tuileries, and a sunset view from the Eiffel Tower. Day 3: Montmartre, café brunch, last-minute shopping, return to London.
+10:25:46.268 [loomBoundedElastic-137] INFO  StreamingTest - Streamed itinerary: Option 2: Day 1: Arrive in Paris by Eurostar, explore Île de la Cité and Notre-Dame area, then dinner in Le Marais. Day 2: Musée d'Orsay, Seine cruise, and evening at the Champs-Élysées. Day 3: Latin Quarter walk, Luxembourg Gardens, relaxed lunch, back to London.
+10:25:46.983 [loomBoundedElastic-208] INFO  StreamingTest - Streamed itinerary: Option 3: Day 1: Travel from London to Paris, settle in, and spend the evening in Canal Saint-Martin. Day 2: Visit the Arc de Triomphe, Eiffel Tower, and a food tour. Day 3: Sacré-Cœur, boutique browsing in Montmartre, then return to London.
+----
+
+=== Conclusion
+Use streaming when you want typed results as a Flux instead of a single completed object.
+For collections, ask the model for one JSON object per line and handle the emitted items as they arrive.
