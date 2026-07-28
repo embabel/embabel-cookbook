@@ -19,7 +19,7 @@ This chapter shows how to expose tools to a `PromptRunner` and produce a `Travel
 ==== Tooling
 
 The `TravelTooling` class exposes two methods to the LLM.
-Each method receives a destination string from the model and returns a hardcoded but realistic response.
+Each method receives a destination string from the model and returns a hard-coded but realistic response.
 
 [source,java]
 ----

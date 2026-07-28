@@ -90,5 +90,5 @@ The model choice itself is not hard-coded in the action; it comes from the activ
 
 === Conclusion
 
-This recipe demonstrates the practical agent bootstrap mechanism.
-Spring discovers the agent, Embabel reads the metadata, the platform deploys it, and `AgentInvocation` runs the typed flow end to end.
+This recipe demonstrates how typed return values drive the planner forward without hard-coded branching.
+Each action's return type determines what the next step can be, and `AgentInvocation` runs the full typed chain end to end.

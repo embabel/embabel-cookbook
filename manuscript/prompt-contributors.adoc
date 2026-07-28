@@ -1,7 +1,7 @@
 == Prompt Contributors
 
 === Introduction
-Prompt contributors let you build a prompt from structured message objects instead of one concatenated string.
+Prompt contributors let you build a prompt from structured message objects instead of a single concatenated string.
 This chapter uses `SystemMessage` and `UserMessage` to create a travel plan from a message list.
 
 [[cookbook.prompt-contributors.key-concepts]]

@@ -63,5 +63,5 @@ The staggered log timestamps show the items arriving on separate callback invoca
 ----
 
 === Conclusion
-Use streaming when you want typed results as a Flux instead of a single completed object.
+Use streaming when you want typed results as a `Flux` instead of a single completed object.
 For collections, ask the model for one JSON object per line and handle the emitted items as they arrive.

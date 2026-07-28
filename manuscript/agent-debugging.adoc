@@ -1,8 +1,9 @@
 == Agent Debugging
 
 === Introduction
+
 When an agent application starts correctly, a lot of wiring happens before the first invocation runs.
-This chapter traces that boot path from the cookbook dependency in the POM to the beans, properties, and metadata readers that make agent deployment work.
+This chapter traces that boot path, from the starter dependency in `pom.xml` through the auto-configurations, property loaders, and metadata readers that make agent deployment work.
 The boundary matters: Spring still creates the `@Agent` bean and manages its lifecycle, while Embabel reads the annotations and deploys the bean as an agent.
 
 [[cookbook.agent-debugging.key-concepts]]
@@ -39,8 +40,7 @@ The `@Agent` class is still a normal Spring bean, so the Spring container is res
 * `AgentMetadataReader` reads the Spring-managed bean class and turns those annotations into deployable agent metadata.
 * `AgentDeployer` takes the discovered agents, the `AgentPlatform`, and the scanning properties, then deploys the agents into the running platform.
 * Spring owns the bean instance; Embabel uses the metadata and deployment path to make that bean available as an agent.
-* When startup looks wrong, the first places to inspect are the starter dependency in `pom.xml`, the auto-configuration imports, the property loader logs, and the metadata-reader or deployer logs.
 
 === Conclusion
-The boot path is not magic: it is a chain of imported auto-configurations, property loaders, scanners, and deployers.
-If you can follow those classes in order, you can usually explain why an agent did or did not get deployed.
+
+When startup goes wrong, the first places to inspect are the starter dependency in `pom.xml`, the auto-configuration imports, the property loader logs, and the deployment logs.

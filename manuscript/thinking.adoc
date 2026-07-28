@@ -22,7 +22,7 @@ The chapter uses the shared `TravelPlan` record from the cookbook domain so the 
 The chapter uses it for the positive case.
 
 [[cookbook.thinking.create-object-if-possible]]
-`createObjectIfPossible(...)` returns a `ThinkingResponse<T?>` when the prompt may be incomplete.
+`createObjectIfPossible(...)` returns a `ThinkingResponse<T>` (where the result `T` may be `null`) when the prompt may be incomplete.
 The chapter uses it for the nullable case.
 
 === How It Works
@@ -61,7 +61,7 @@ The logged reasoning content comes from the `decision_reasoning` block in the re
 
 The nullable test uses the same thinking-aware runner and the same system prompt, but passes an intentionally incomplete user prompt.
 This is different from the plain nullable API, which would return `null` directly. Here, the thinking-aware call returns a `ThinkingResponse` whose `result` is `null` and whose exception carries the failure information for the impossible request.
-In this chapter, the useful text is the exception message, such as `Impossible: half-day from New York to Sydney is infeasible.`
+In this chapter, the useful text is the exception message, such as `Impossible: half-day from New York to Sydney is infeasible`.
 
 [source,java]
 ----

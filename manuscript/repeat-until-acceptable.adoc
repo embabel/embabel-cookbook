@@ -17,7 +17,7 @@ The loop is deterministic here because the evaluator is part of the code, not an
 
 [[cookbook.repeat-until-acceptable.textfeedback]]
 `Feedback` is the loop contract.
-`TextFeedback` is the framework's built-in score-plus-message feedback type in this API artifact.
+`TextFeedback` is the framework's built-in score-plus-message feedback type in this API.
 It is not the business result; it is the value returned by the evaluator lambda inside `withEvaluator(...)`.
 The evaluator returns `TextFeedback(score, feedback)`.
 `withScoreThreshold(0.8)` reads `Feedback.getScore()` from that object.
@@ -43,7 +43,7 @@ include::../src/test/java/com/embabel/cookbook/RepeatUntilAcceptableTest.java[ta
 
 ==== Main Flow
 
-The action builds a repeat-until acceptable sub-process.
+The action builds a repeat-until-acceptable sub-process.
 It revises the itinerary, evaluates the latest attempt, and stops once the score reaches the threshold.
 The loop returns an `Itinerary`, not a `TextFeedback`, because the feedback is internal control data while the itinerary is the actual business result.
 
@@ -89,5 +89,5 @@ The repeated drafts do not appear as separate top-level actions in the history, 
 
 === Conclusion
 
-Repeat-until acceptable is the right pattern when the first itinerary may be close, but not good enough.
+The repeat-until-acceptable pattern is the right choice when the first itinerary may be close, but not good enough.
 The loop keeps the work local to the agent and makes the acceptance rule explicit.

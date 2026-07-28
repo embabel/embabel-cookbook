@@ -34,7 +34,7 @@ include::../src/test/java/com/embabel/cookbook/ActionHeuristicsTest.java[tag=boo
 ==== Main Flow
 
 Both actions accept the same `UserInput` and return the same `TravelRecommendation`.
-The only difference is the cost value, so the planner should prefer the cheaper branch.
+The only difference is the cost value, so the planner picks the cheaper branch.
 
 [source,java]
 ----
@@ -44,7 +44,6 @@ include::../src/test/java/com/embabel/cookbook/ActionHeuristicsTest.java[tag=age
 ==== Test Wiring
 
 The test asks for a travel recommendation and checks that the cheaper action was the one executed.
-The log excerpt shows the planner considering the available actions and selecting the lower-cost branch.
 
 [source,java]
 ----

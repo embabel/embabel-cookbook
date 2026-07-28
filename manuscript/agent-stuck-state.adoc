@@ -70,7 +70,7 @@ include::../src/test/java/com/embabel/cookbook/AgentStuckStateTest.java[tag=buil
 ==== Stuck Path
 
 The travel request test completes because `classifyRequest` returns `TravelInquiry`, which makes `buildTravelRecommendation` eligible.
-The dog test gets stuck after `classifyRequest` returns `NonTravelInquiry`.
+The non-travel test gets stuck after `classifyRequest` returns `NonTravelInquiry`.
 At that point the planner reevaluates the blackboard, sees that `buildTravelRecommendation` requires a `TravelInquiry`, and has no eligible next action left.
 The invocation from `TravelRecommendation` starts the run from the target output type, but the dog input is not travel-related, so the planner reaches `STUCK` immediately after the classification step.
 The `<1>` marker on the test line points to the invocation that starts the run.
