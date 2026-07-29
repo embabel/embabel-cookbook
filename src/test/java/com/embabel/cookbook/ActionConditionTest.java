@@ -150,7 +150,7 @@ class FlightConditionAgent {
     // end::summarize[]
 
     // tag::direct-flight-request[]
-    @Condition // <3>
+    @Condition // <1>
     boolean directFlightRequested(FlightRoutingRequest request, OperationContext context) {
         logger.info("Evaluating direct-flight request against blackboard: {}", context.getObjects());
         return request.directFlightOnly();
@@ -158,7 +158,7 @@ class FlightConditionAgent {
     // end::direct-flight-request[]
 
     // tag::stops-allowed[]
-    @Condition // <4>
+    @Condition // <2>
     boolean stopsAllowed(FlightRoutingRequest request, OperationContext context) {
         logger.info("Evaluating with-stops request against blackboard: {}", context.getObjects());
         return request.stopsAllowed();

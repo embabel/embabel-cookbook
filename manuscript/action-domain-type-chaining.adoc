@@ -59,6 +59,12 @@ include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java
 include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=summarize]
 ----
 
+<1> `classifyRequest` is the first typed action; it turns raw `UserInput` into a `TravelRequest`.
+<2> The LLM classifies the request as a `TravelRequestType`, which determines the next domain object.
+<3> `findFlight` is eligible only when the classifier returned a `FlightRequest`.
+<4> `buildItinerary` is eligible only when the classifier returned an `ItineraryRequest`.
+<5> `summarize` is the goal action; it converts the selected `TravelActivity` into the final `TravelRecommendation`.
+
 The important part is the type flow:
 `UserInput` -> `TravelRequest` -> `FlightRequest` or `ItineraryRequest` -> `Flight` or `Itinerary` -> `TravelRecommendation`.
 That flow is what the planner follows when it chooses the next action.
@@ -77,6 +83,8 @@ That file sets `embabel.models.default-llm=gpt-4.1-mini` for the chapter tests.
 include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=flight-request-test]
 include::../src/test/java/com/embabel/cookbook/ActionDomainTypeChainingTest.java[tag=itinerary-request-test]
 ----
+
+<1> `AgentInvocation` starts from the target result type and lets the planner find a path from `UserInput` to `TravelRecommendation`.
 
 The test only checks that the result exists and is nonblank.
 That keeps the recipe stable even though the model output itself can vary.

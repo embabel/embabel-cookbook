@@ -93,7 +93,7 @@ class TravelAgent {
     private Ai ai; // <2>
 
     // tag::classify-request[]
-    @Action(description = "Classify the user input as a flight or itinerary request") // <3>
+    @Action(description = "Classify the user input as a flight or itinerary request") // <1>
     TravelRequest classifyRequest(UserInput userInput) {
         var requestType = ai.withDefaultLlm()
                 .createObject("""
@@ -101,7 +101,7 @@ class TravelAgent {
 
                         # User input
                         %s
-                        """.formatted(userInput.getContent()).trim(), TravelRequestType.class); // <4>
+                        """.formatted(userInput.getContent()).trim(), TravelRequestType.class); // <2>
 
         return switch (requestType) {
             case FLIGHT -> new FlightRequest(userInput);
@@ -111,7 +111,7 @@ class TravelAgent {
     // end::classify-request[]
 
     // tag::find-flight[]
-    @Action(description = "Find a flight based on user input") // <5>
+    @Action(description = "Find a flight based on user input") // <3>
     Flight findFlight(FlightRequest request) {
         return ai.withDefaultLlm()
                 .createObject("""
@@ -124,7 +124,7 @@ class TravelAgent {
     // end::find-flight[]
 
     // tag::build-itinerary[]
-    @Action(description = "Build a travel itinerary based on user input") // <6>
+    @Action(description = "Build a travel itinerary based on user input") // <4>
     Itinerary buildItinerary(ItineraryRequest request) {
         return ai.withDefaultLlm()
                 .createObject("""
@@ -137,7 +137,7 @@ class TravelAgent {
     // end::build-itinerary[]
 
     // tag::summarize[]
-    @AchievesGoal(description = "The user has received a travel recommendation") // <7>
+    @AchievesGoal(description = "The user has received a travel recommendation") // <5>
     @Action(description = "Summarize the selected travel activity")
     TravelRecommendation summarize(TravelActivity activity) {
         return ai.withDefaultLlm()

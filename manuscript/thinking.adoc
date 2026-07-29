@@ -61,7 +61,7 @@ The logged reasoning content comes from the `decision_reasoning` block in the re
 
 The nullable test uses the same thinking-aware runner and the same system prompt, but passes an intentionally incomplete user prompt.
 This is different from the plain nullable API, which would return `null` directly. Here, the thinking-aware call returns a `ThinkingResponse` whose `result` is `null` and whose exception carries the failure information for the impossible request.
-In this chapter, the useful text is the exception message, such as `Impossible: half-day from New York to Sydney is infeasible`.
+In this chapter, the useful text is the exception message explaining that a half-day New York to Sydney trip is impossible or infeasible.
 
 [source,java]
 ----

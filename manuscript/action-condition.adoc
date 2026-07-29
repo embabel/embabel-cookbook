@@ -75,6 +75,9 @@ include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=buil
 include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=summarize]
 ----
 
+<1> `directFlightRequested` is true only when the analyzed request requires a direct or nonstop flight.
+<2> `stopsAllowed` is true when the analyzed request permits a connecting flight.
+
 The interesting part is the branch selection:
 
 * direct requests execute `buildDirectFlight`
@@ -101,6 +104,8 @@ Both check that the process completes and that the recommendation is nonblank.
 include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=direct-flight-test]
 include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=flight-with-stops-test]
 ----
+
+<1> `AgentInvocation` asks the planner for a `TravelRecommendation`; the conditions decide which branch can run for the supplied input.
 
 === Conclusion
 
