@@ -98,6 +98,7 @@ class TravelAgent {
         var requestType = ai.withDefaultLlm()
                 .createObject("""
                         You are a helpful travel assistant classifying whether the request needs a flight or an itinerary.
+                        Reply must simply be either \"FLIGHT\" or \"ITINERARY\".
 
                         # User input
                         %s

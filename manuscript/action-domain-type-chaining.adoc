@@ -76,7 +76,8 @@ The chapter test exercises the chain from the outside.
 It autowires `AgentPlatform`, which is the entry point for runtime invocation.
 It also uses `Ai` inside the agent actions so each typed step can call the configured LLM directly.
 The default LLM comes from `src/test/resources/application-cookbook-test.properties`, which is loaded by the `cookbook-test` profile.
-That file sets `embabel.models.default-llm=gpt-4.1-mini` for the chapter tests.
+That file sets `embabel.models.default-llm=gpt-4.1-mini` for the chapter tests. You can make other LLM provider's model as default by changing the
+`embabel.models.default-llm` property and updating the `pom.xml` with the corresponding supported module from (here)[https://github.com/embabel/embabel-agent/blob/main/embabel-agent-starters/pom.xml#L22]. 
 
 [source,java]
 ----
