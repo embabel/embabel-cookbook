@@ -61,7 +61,7 @@ class ActionHeuristicsTest {
         logger.info("Running action heuristics test");
 
         var process = AgentInvocation.create(agentPlatform, TravelRecommendation.class)
-                .runAsync(new UserInput("Choose the best travel recommendation"))
+                .runAsync(new UserInput("Choose a travel recommendation"))
                 .join();
 
         logger.info("Heuristics blackboard: {}", process.getBlackboard().infoString(true, 1));
