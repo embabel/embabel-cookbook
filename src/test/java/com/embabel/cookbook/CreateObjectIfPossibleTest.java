@@ -68,7 +68,7 @@ class CreateObjectIfPossibleTest {
 
         var request = ai.withDefaultLlm() // <3>
                 .createObjectIfPossible("""
-                        Plan a trip.
+                        Return null.
                         """, ItineraryRequest.class); // <4>
 
         logger.info("Negative request: {}", request);

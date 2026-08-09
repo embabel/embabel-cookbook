@@ -21,10 +21,6 @@ It can set model selection, temperature, max tokens, top-p, top-k, thinking, and
 The builder can add examples and validation before the prompt is executed.
 In this chapter, the target object has five fields and the chapter uses a travel system prompt to bias the request toward the right domain.
 
-[[cookbook.object-creation.create-if-possible]]
-`createObjectIfPossible(...)` is the nullable variant.
-It belongs to the next chapter because this chapter focuses on the successful creation path first.
-
 === How It Works
 
 ==== Bootstrap
