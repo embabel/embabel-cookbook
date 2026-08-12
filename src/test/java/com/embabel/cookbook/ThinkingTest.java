@@ -72,6 +72,7 @@ class ThinkingTest {
                    - risk of being late
                    - trade-offs
                    </decision_reasoning>
+                   4. Do not add any nested JSON entities in the reply but still add the thinking blocks.
                    """)
             .thinking() // <4>
             .createObject("""
@@ -106,7 +107,7 @@ class ThinkingTest {
                    1. Provide reasoning inside <decision_reasoning>...</decision_reasoning>
                    2. Keep reasoning concise (3-5 bullet points)
                    3. Explain why the itinerary is optimal.
-
+                   4. Do not add any nested JSON entities in the reply but still add the thinking blocks.
                    <decision_reasoning>
                    Explain:
                    - time constraint
