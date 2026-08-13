@@ -101,12 +101,8 @@ This cookbook is organized as executable documentation:
 
 Tentative areas to cover next:
 
-- create object, including `PromptRunner` options and parameters
-- `create-object-if-possible`
-- creating user prompts and system prompts with `PromptRunner`
+
 - property filtering
-- thinking mode
-- streaming mode
 - termination
 - tooling, including `AgenticTool` , ```UnfoldingTools``` and subagents
 - parallel tool loop, for more advanced flows
