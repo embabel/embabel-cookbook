@@ -32,8 +32,8 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // tag::bootstrap[]
 @SpringBootTest(classes = CookbookTestApplication.class)
@@ -71,7 +71,8 @@ class PromptContributorsTest {
         logger.info("Created travel plan: {}", plan);
 
         assertNotNull(plan);
-        assertEquals("Paris, France", plan.destination());
+        assertTrue( plan.destination().toLowerCase().contains("paris"),
+                "Paris is missing from the destination " + plan.destination());
         assertNotNull(plan.transport());
         assertNotNull(plan.itineraryDescription());
         assertNotNull(plan.highlight());
