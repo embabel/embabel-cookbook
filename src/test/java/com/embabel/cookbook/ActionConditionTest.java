@@ -111,6 +111,7 @@ class FlightConditionAgent {
     // tag::build-direct-flight[]
     @Action(description = "Build a direct flight", pre = {"directFlightRequested"})
     FlightPlan buildDirectFlight(FlightRoutingRequest request, OperationContext context) {
+        logger.info("User intent is classified as a request for direct flight.");
         return context.ai()
                 .withDefaultLlm()
                 .createObject("""
@@ -127,6 +128,7 @@ class FlightConditionAgent {
     // tag::build-flight-with-stops[]
     @Action(description = "Build a flight with stops", pre = {"stopsAllowed"})
     FlightPlan buildFlightWithStops(FlightRoutingRequest request, OperationContext context) {
+        logger.info("User intent is classified as a request for flight with stops.");
         return context.ai()
                 .withDefaultLlm()
                 .createObject("""
