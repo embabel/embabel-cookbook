@@ -6,7 +6,6 @@
 [![Cookbook](https://img.shields.io/badge/cookbook-1.5.0-brightgreen)](https://docs.embabel.com/embabel-cookbook/1.5.0/)
 [![PDF](https://img.shields.io/badge/download-PDF-red)](https://docs.embabel.com/embabel-cookbook/1.5.0/embabel-cookbook-1.5.0.pdf)
 [![EPUB](https://img.shields.io/badge/download-EPUB-blue)](https://docs.embabel.com/embabel-cookbook/1.5.0/embabel-cookbook-1.5.0.epub)
-[![MvnRepository](https://badges.mvnrepository.com/badge/com.embabel.agent/embabel-agent-api/badge.svg?label=MvnRepository)](https://mvnrepository.com/artifact/com.embabel.agent/embabel-agent-api)
 [![Publish Docs](https://github.com/embabel/embabel-cookbook/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/embabel/embabel-cookbook/actions/workflows/deploy-docs.yml)
 [![Discord](https://img.shields.io/discord/1277751399261798401?logo=discord)](https://discord.gg/t6bjkyj93q)
 
