@@ -113,3 +113,7 @@ Tentative areas to cover next:
 - observability
 - MCP and A2A
 - RAG
+
+## Testability
+
+Cookbook got tested on Open AI / Anthropic/ Ollama qwen3
