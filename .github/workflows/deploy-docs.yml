@@ -1,0 +1,177 @@
+# Builds the Embabel Cookbook (HTML + PDF + EPUB) with Asciidoctor/Maven and publishes it
+# to the embabel-webserver VM under a versioned directory.
+#
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Publish Docs
+
+on:
+  # Triggered from another workflow / repo when the cookbook should be republished.
+  # Optional client_payload: { "sha": "<commit to build>" }
+  repository_dispatch:
+    types: [publish-docs]
+
+  workflow_dispatch:  # Enables manual triggering
+    inputs:
+      environment:
+        description: 'Deploy Environment'
+        required: true
+        default: 'embabel-dev'
+        type: choice
+        options:
+          - embabel-dev
+          - embabel-sit
+          - embabel-prod
+      vm_instance:
+        description: 'VM Instance Name'
+        required: true
+        default: 'embabel-webserver'
+        type: string
+      vm_zone:
+        description: 'VM Zone'
+        required: true
+        default: 'us-east1-b'
+        type: string
+
+  # Automatic trigger on file changes
+  push:
+    branches:
+      - main
+    paths:
+      - 'manuscript/**'
+      - 'src/**'            # chapters include tagged code from src/main and src/test
+      - 'pom.xml'
+      - '.github/workflows/deploy-docs.yml'
+
+permissions:
+  contents: read
+
+# One deployment at a time: the VM steps rm -rf and recreate the same versioned directory.
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: ${{ github.event.inputs.environment || 'embabel-dev' }}
+  VM_INSTANCE: ${{ github.event.inputs.vm_instance || 'embabel-webserver' }}
+  VM_ZONE: ${{ github.event.inputs.vm_zone || 'us-east1-b' }}
+  DOCS_ROOT: /var/www/html/embabel-cookbook
+  DOCS_URL_PATH: /embabel-cookbook
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # repository_dispatch has no commit context; let the caller pin one if it wants to
+          ref: ${{ github.event.client_payload.sha || github.sha }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build cookbook (HTML, PDF, EPUB)
+        run: mvn -B -U -Pcookbook-html,cookbook-pdf,cookbook-epub generate-resources
+
+      - name: Extract version from pom.xml
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null object or invalid expression" ]; then
+            echo "Could not resolve project.version from pom.xml" >&2
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Assemble deployment archive
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          rm -rf site cookbook-bundle.tar.gz
+          mkdir -p site
+
+          # book.html is the Asciidoctor entry point; index.html makes the directory URL work
+          cp target/generated-docs/book.html site/book.html
+          cp target/generated-docs/book.html site/index.html
+          cp target/generated-docs/book.pdf  "site/embabel-cookbook-$VERSION.pdf"
+          cp target/generated-docs/book.epub "site/embabel-cookbook-$VERSION.epub"
+          # Diagram/figure output, if any chapter ever adds images
+          if [ -d target/generated-docs/images ]; then
+            cp -r target/generated-docs/images site/images
+          fi
+
+          tar -czf cookbook-bundle.tar.gz -C site .
+          echo "Archive contents:"
+          tar -tzf cookbook-bundle.tar.gz
+          echo "Archive size: $(du -h cookbook-bundle.tar.gz | cut -f1)"
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy archive to VM
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          echo "Deploying cookbook $VERSION to $VM_INSTANCE ($VM_ZONE) at $(date)"
+
+          # The remote half is a script rather than an inline --command string:
+          # no double-layer shell escaping, and it fails fast on any error.
+          cat > deploy-remote.sh <<'REMOTE'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          : "${VERSION:?VERSION not set}"
+          : "${DOCS_ROOT:?DOCS_ROOT not set}"
+
+          TARGET="$DOCS_ROOT/$VERSION"
+          STAGE=$(mktemp -d)
+          trap 'rm -rf "$STAGE"' EXIT
+
+          echo "Unpacking on $(hostname) at $(date)"
+          tar -xzf "$HOME/cookbook-bundle.tar.gz" -C "$STAGE"
+
+          sudo rm -rf "$TARGET"
+          sudo mkdir -p "$TARGET"
+          sudo cp -r "$STAGE/." "$TARGET/"
+          sudo chmod -R a+rX "$TARGET"
+
+          rm -f "$HOME/cookbook-bundle.tar.gz" "$HOME/deploy-remote.sh"
+          echo "Deployed to $TARGET at $(date)"
+          REMOTE
+
+          gcloud compute scp --quiet --zone="$VM_ZONE" \
+            cookbook-bundle.tar.gz deploy-remote.sh "$VM_INSTANCE:~/"
+
+          gcloud compute ssh --quiet --zone="$VM_ZONE" "$VM_INSTANCE" \
+            --command="VERSION='$VERSION' DOCS_ROOT='$DOCS_ROOT' bash \$HOME/deploy-remote.sh"
+
+          rm -f cookbook-bundle.tar.gz deploy-remote.sh
+          echo "Deployment completed at $(date)"
+
+      - name: Verify deployment
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          gcloud compute ssh --quiet --zone="$VM_ZONE" "$VM_INSTANCE" \
+            --command="
+              echo 'Deployed version: $VERSION' &&
+              sudo ls -la '$DOCS_ROOT/$VERSION' &&
+              echo 'Testing web access:' &&
+              curl -fsSI 'http://localhost$DOCS_URL_PATH/$VERSION/index.html' | head -1
+            "
+          echo "Published: https://docs.embabel.com$DOCS_URL_PATH/$VERSION/"
