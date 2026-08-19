@@ -3,9 +3,11 @@
 
 <a href="https://hub.embabel.com"><img align="left" src="https://github.com/embabel/embabel-agent/blob/main/embabel-agent-api/images/315px-Meister_der_Weltenchronik_001.jpg?raw=true" width="180"></a>
 
-[![Docs](https://img.shields.io/badge/docs-live-brightgreen)](https://docs.embabel.com/embabel-agent/guide/0.5.0/)
+[![Cookbook](https://img.shields.io/badge/cookbook-1.5.0-brightgreen)](https://docs.embabel.com/embabel-cookbook/1.5.0/)
+[![PDF](https://img.shields.io/badge/download-PDF-red)](https://docs.embabel.com/embabel-cookbook/1.5.0/embabel-cookbook-1.5.0.pdf)
+[![EPUB](https://img.shields.io/badge/download-EPUB-blue)](https://docs.embabel.com/embabel-cookbook/1.5.0/embabel-cookbook-1.5.0.epub)
 [![MvnRepository](https://badges.mvnrepository.com/badge/com.embabel.agent/embabel-agent-api/badge.svg?label=MvnRepository)](https://mvnrepository.com/artifact/com.embabel.agent/embabel-agent-api)
-![Build](https://github.com/embabel/embabel-agent/actions/workflows/maven.yml/badge.svg)
+[![Publish Docs](https://github.com/embabel/embabel-cookbook/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/embabel/embabel-cookbook/actions/workflows/deploy-docs.yml)
 [![Discord](https://img.shields.io/discord/1277751399261798401?logo=discord)](https://discord.gg/t6bjkyj93q)
 
 [//]: # ([![Quality Gate Status]&#40;https://sonarcloud.io/api/project_badges/measure?project=embabel_embabel-agent&metric=alert_status&token=d275d89d09961c114b8317a4796f84faf509691c&#41;]&#40;https://sonarcloud.io/summary/new_code?id=embabel_embabel-agent&#41;)
@@ -25,8 +27,8 @@
 ![SonarQube](https://img.shields.io/badge/SonarQube-black?style=for-the-badge&logo=sonarqube&logoColor=4E9BCD)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white)
-[![License](https://img.shields.io/github/license/embabel/embabel-agent?style=for-the-badge&logo=apache&color=brightgreen)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Commits](https://img.shields.io/github/commit-activity/m/embabel/embabel-agent.svg?label=commits&style=for-the-badge&logo=git&logoColor=white)](https://github.com/embabel/embabel-agent/pulse)
+[![License](https://img.shields.io/github/license/embabel/embabel-cookbook?style=for-the-badge&logo=apache&color=brightgreen)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Commits](https://img.shields.io/github/commit-activity/m/embabel/embabel-cookbook.svg?label=commits&style=for-the-badge&logo=git&logoColor=white)](https://github.com/embabel/embabel-cookbook/pulse)
 
 &nbsp;&nbsp;&nbsp;&nbsp;
 
