@@ -13,7 +13,7 @@ This chapter uses the travel domain and focuses on graceful failure when the inp
 It exposes `createObjectIfPossible(...)` so code can ask for a typed object and get `null` when the prompt is not sufficient.
 
 [[cookbook.create-object-if-possible.travel-request]]
-`ItineraryRequest` is the target type in this chapter.
+`TravelPlan` is the target type in this chapter.
 It gives the chapter a concrete travel object to extract from plain text.
 
 [[cookbook.create-object-if-possible.nullability]]
@@ -46,7 +46,7 @@ The negative case is visible in the runtime log:
 
 [source,text]
 ----
-17:35:16.286 [main] WARN  OperationContextDelegate - Failed to create object of type com.embabel.cookbook.travel.domain.ItineraryRequest with messages [UserMessage(from='User', content='Plan a trip.
+17:35:16.286 [main] WARN  OperationContextDelegate - Failed to create object of type com.embabel.cookbook.travel.domain.TravelPlan with messages [UserMessage(from='User', content='Plan a trip.
 ')]: Insufficient details to plan a trip
 ----
 

@@ -17,6 +17,8 @@ package com.embabel.cookbook;
 
 import com.embabel.agent.api.common.Ai;
 import com.embabel.cookbook.travel.domain.ItineraryRequest;
+import com.embabel.cookbook.travel.domain.TravelPlan;
+
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,29 +53,29 @@ class CreateObjectIfPossibleTest {
     void createObjectIfPossibleReturnsItineraryRequestWhenPromptIsSufficient() {
         logger.info("Running createObjectIfPossible positive test");
 
-        var request = ai.withDefaultLlm() // <1>
+        var travelPlan = ai.withDefaultLlm() // <1>
                 .createObjectIfPossible("""
                         Plan a three-day itinerary from London to Paris for Friday to Sunday.
                         Include Eurostar travel, the Eiffel Tower, the Louvre, and a Seine river walk.
-                        """, ItineraryRequest.class); // <2>
+                        """, TravelPlan.class); // <2>
 
-        logger.info("Positive request: {}", request);
+        logger.info("Positive request: {}", travelPlan);
 
-        assertNotNull(request);
+        assertNotNull(travelPlan);
     }
 
     @Test
     void createObjectIfPossibleReturnsNullWhenPromptIsInsufficient() {
         logger.info("Running createObjectIfPossible negative test");
 
-        var request = ai.withDefaultLlm() // <3>
+        var travelPlan = ai.withDefaultLlm() // <3>
                 .createObjectIfPossible("""
                         Plan a trip.
-                        """, ItineraryRequest.class); // <4>
+                        """, TravelPlan.class); // <4>
 
-        logger.info("Negative request: {}", request);
+        logger.info("Negative request: {}", travelPlan);
 
-        assertNull(request);
+        assertNull(travelPlan);
     }
     // end::test[]
 }
