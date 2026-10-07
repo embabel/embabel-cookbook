@@ -50,7 +50,7 @@ class CreateObjectIfPossibleTest {
 
     // tag::test[]
     @Test
-    void createObjectIfPossibleReturnsItineraryRequestWhenPromptIsSufficient() {
+    void createObjectIfPossibleReturnsTravelPlantWhenPromptIsSufficient() {
         logger.info("Running createObjectIfPossible positive test");
 
         var travelPlan = ai.withDefaultLlm() // <1>
