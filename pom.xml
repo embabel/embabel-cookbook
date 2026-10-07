@@ -12,7 +12,7 @@
 
     <groupId>com.embabel.cookbook</groupId>
     <artifactId>embabel-cookbook</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
     <name>Embabel Cookbook</name>
 
     <properties>
