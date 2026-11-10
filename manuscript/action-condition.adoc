@@ -75,8 +75,9 @@ include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=buil
 include::../src/test/java/com/embabel/cookbook/ActionConditionTest.java[tag=summarize]
 ----
 
-<1> `directFlightRequested` is true only when the analyzed request requires a direct or nonstop flight.
-<2> `stopsAllowed` is true when the analyzed request permits a connecting flight.
+<1> `post` lists the conditions this action can make true: `directFlightRequested` or `stopsAllowed`. Each branch action requires one of them in its `pre` condition, so the planner runs this action first.
+<2> `directFlightRequested` is true only when the analyzed request requires a direct or nonstop flight.
+<3> `stopsAllowed` is true when the analyzed request permits a connecting flight.
 
 The interesting part is the branch selection:
 

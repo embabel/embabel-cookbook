@@ -98,8 +98,8 @@ class FlightConditionAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(FlightConditionAgent.class);
 
-    @Action(description = "Analyze the flight request", post = {"directFlightRequested", "stopsAllowed"}) // <2>
     // tag::analyze-request[]
+    @Action(description = "Analyze the flight request", post = {"directFlightRequested", "stopsAllowed"}) // <1>
     FlightRoutingRequest analyzeFlightRequest(UserInput userInput, OperationContext context) {
         var request = new FlightRoutingRequest(userInput, isDirectFlightOnly(userInput.getContent()));
         context.setCondition("directFlightRequested", request.directFlightOnly());
@@ -152,7 +152,7 @@ class FlightConditionAgent {
     // end::summarize[]
 
     // tag::direct-flight-request[]
-    @Condition // <1>
+    @Condition // <2>
     boolean directFlightRequested(FlightRoutingRequest request, OperationContext context) {
         logger.info("Evaluating direct-flight request against blackboard: {}", context.getObjects());
         return request.directFlightOnly();
@@ -160,7 +160,7 @@ class FlightConditionAgent {
     // end::direct-flight-request[]
 
     // tag::stops-allowed[]
-    @Condition // <2>
+    @Condition // <3>
     boolean stopsAllowed(FlightRoutingRequest request, OperationContext context) {
         logger.info("Evaluating with-stops request against blackboard: {}", context.getObjects());
         return request.stopsAllowed();
